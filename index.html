@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=350, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的番茄钟</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 id="modeTitle">一万年太久，只争朝夕</h1>
+        <p id="restMessage" style="display:none;color:#ffd500f3;font-size:1.5rem;">紧张与松弛相结合，奋斗与休整相统一</p>
+        <div class="timer-display" id="timer">25:00</div>
+        <div class="controls">
+            <button id="startBtn">开始</button>
+            <button id="pauseBtn">暂停</button>
+            <button id="resetBtn">重置</button>
+        </div>
+        <div class="stats">
+            <p>今日已完成目标: <span id="tomatoCount">0</span></p>
+            <div class="history-link">
+                <a id="statsBtn">查看历史</a>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

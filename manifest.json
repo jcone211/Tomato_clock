@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "我的番茄钟",
+  "version": "1.0",
+  "description": "一个红色的番茄工作法计时器扩展",
+  "action": {
+    "default_icon": {
+      "16": "icons/tomato_icon_16x16.png",
+      "48": "icons/tomato_icon_48x48.png",
+      "128": "icons/tomato_icon_128x128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "windows"],
+  "icons": {
+    "16": "icons/tomato_icon_16x16.png",
+    "48": "icons/tomato_icon_48x48.png",
+    "128": "icons/tomato_icon_128x128.png"
+  }
+}
