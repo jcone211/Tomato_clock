@@ -171,6 +171,18 @@ function renderStatsTable() {
         </div>
         <table><tr><th>日期</th><th>完成目标数</th></tr>
     `;
+    const aaa = {
+        "2025/3/1": 30,
+        "2025/4/1": 1,
+        "2025/4/24": 1,
+        "2025/4/25": 1,
+        "2025/4/26": 1,
+        "2025/4/27": 1,
+        "2025/4/28": 1,
+        "2025/4/29": 1,
+        "2025/4/30": 1,
+        "2025/5/1": 5
+    }
 
     // 按日期排序并只显示最近7天
     const sortedDates = Object.keys(dailyTomatoes).sort((a, b) =>
@@ -192,8 +204,8 @@ function renderStatsTable() {
 
 // 更新计时器
 function updateTimer() {
-    // timeLeft = timeLeft - 100;
-    timeLeft--;
+    timeLeft = timeLeft - 100;
+    // timeLeft--;
     updateDisplay();
 
     if (timeLeft <= 0) {

@@ -4,7 +4,7 @@ chrome.action.onClicked.addListener(() => {
             url: 'index.html',
             type: 'popup',
             width: 520,
-            height: 720,
+            height: 760,
             left: currentWindow.width - 400,
             top: 50
         });
