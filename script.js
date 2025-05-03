@@ -13,6 +13,8 @@ let isRunning = false;
 let isWorkTime = true;
 let tomatoCount = 0;
 let dailyTomatoes = {};
+let startTime = 0; // 新增：记录计时开始的时间戳
+let elapsedSeconds = 0; // 新增：累计经过的秒数
 
 // 从chrome.storage加载番茄计数
 chrome.storage.sync.get(['tomatoCount', 'dailyTomatoes'], function (result) {
@@ -84,24 +86,39 @@ resetBtn.addEventListener("click", resetTimer);
 function startTimer() {
     if (!isRunning) {
         isRunning = true;
-        timer = setInterval(updateTimer, 1000);
+        startTime = Date.now() - elapsedSeconds * 1000; // 补偿已过去的时间
+        chrome.alarms.create('pomodoro-timer', { periodInMinutes: 0.5 }); // 30秒触发一次
+        updateTimer(); // 立即触发第一次更新
     }
 }
 
 // 暂停计时
 function pauseTimer() {
-    clearInterval(timer);
+    chrome.alarms.clear('pomodoro-timer');
     isRunning = false;
+    elapsedSeconds = Math.floor((Date.now() - startTime) / 1000); // 保存已过去的时间
 }
-
 
 // 重置计时
 function resetTimer() {
     pauseTimer();
+    startTime = 0;
+    elapsedSeconds = 0;
     isWorkTime = true;
     timeLeft = 25 * 60;
     updateDisplay();
 }
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === "tick") {
+        updateTimer();
+        // 在前台时使用requestAnimationFrame保持流畅更新
+        console.log(document.visibilityState)
+        if (document.visibilityState === 'visible') {
+            requestAnimationFrame(updateTimer);
+        }
+    }
+});
 
 // 显示统计弹窗
 function showStats() {
@@ -171,18 +188,6 @@ function renderStatsTable() {
         </div>
         <table><tr><th>日期</th><th>完成目标数</th></tr>
     `;
-    const aaa = {
-        "2025/3/1": 30,
-        "2025/4/1": 1,
-        "2025/4/24": 1,
-        "2025/4/25": 1,
-        "2025/4/26": 1,
-        "2025/4/27": 1,
-        "2025/4/28": 1,
-        "2025/4/29": 1,
-        "2025/4/30": 1,
-        "2025/5/1": 5
-    }
 
     // 按日期排序并只显示最近7天
     const sortedDates = Object.keys(dailyTomatoes).sort((a, b) =>
@@ -204,6 +209,11 @@ function renderStatsTable() {
 
 // 更新计时器
 function updateTimer() {
+    const now = Date.now();
+    elapsedSeconds = Math.floor((now - startTime) / 1000);
+    const targetTime = isWorkTime ? 25 * 60 : 5 * 60;
+
+    timeLeft = targetTime - (elapsedSeconds % targetTime);
     // timeLeft = timeLeft - 100;
     timeLeft--;
     updateDisplay();
@@ -213,7 +223,6 @@ function updateTimer() {
             playSound("./resources/end.mp3");
             // 工作结束，切换到休息
             isWorkTime = false;
-            timeLeft = 5 * 60; // 5分钟休息
             const today = new Date().toLocaleDateString();
             tomatoCount++;
             dailyTomatoes[today] = (dailyTomatoes[today] || 0) + 1;
@@ -233,7 +242,6 @@ function updateTimer() {
             playSound("./resources/start.mp3");
             // 休息结束，切换回工作
             isWorkTime = true;
-            timeLeft = 25 * 60;
             document.getElementById("modeTitle").textContent = "一万年太久，只争朝夕";
             document.getElementById("restMessage").style.display = "none";
             document.body.classList.remove("rest-mode");
