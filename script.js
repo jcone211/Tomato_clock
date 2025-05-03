@@ -204,8 +204,8 @@ function renderStatsTable() {
 
 // 更新计时器
 function updateTimer() {
-    timeLeft = timeLeft - 100;
-    // timeLeft--;
+    // timeLeft = timeLeft - 100;
+    timeLeft--;
     updateDisplay();
 
     if (timeLeft <= 0) {
