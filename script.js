@@ -7,8 +7,13 @@ function playSound(url) {
     }
 }
 
+const workTime = 25 * 60; //工作时长
+const restTime = 5 * 60;  //休息时长
+// const workTime = 20; //工作时长
+// const restTime = 10;  //休息时长
 let timer;
-let timeLeft = 25 * 60; // 25分钟工作计时
+let refreshInterval;
+let timeLeft = 25 * 60; // 时钟动态显示的值（秒）
 let isRunning = false;
 let isWorkTime = true;
 let tomatoCount = 0;
@@ -58,8 +63,18 @@ const tomatoCountDisplay = document.getElementById("tomatoCount");
 
 // 更新显示
 function updateDisplay() {
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
+    let minutes, seconds;
+    if (timeLeft != 0) {
+        minutes = Math.floor(timeLeft / 60);
+        seconds = timeLeft % 60;
+    } else {
+        if (isWorkTime) {
+            minutes = parseInt(restTime / 60);
+        } else {
+            minutes = parseInt(workTime / 60);
+        }
+        seconds = 0;
+    }
     timerDisplay.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
         .toString()
         .padStart(2, "0")}`;
@@ -71,6 +86,18 @@ updateDisplay();
 document.body.classList.add("work-mode");
 
 // 事件监听
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        // 页面变为可见时，启动每秒刷新
+        chrome.alarms.clear('pomodoro-timer');
+        refreshInterval = setInterval(updateTimer, 1000);
+    } else {
+        // 页面变为隐藏时，清除刷新定时器
+        clearInterval(refreshInterval);
+        chrome.alarms.create('pomodoro-timer', { periodInMinutes: 0.5 }); // 30秒触发一次
+    }
+});
+
 startBtn.addEventListener("click", startTimer);
 statsBtn.addEventListener("click", showStats);
 closeBtn.addEventListener("click", closeModal);
@@ -87,16 +114,15 @@ function startTimer() {
     if (!isRunning) {
         isRunning = true;
         startTime = Date.now() - elapsedSeconds * 1000; // 补偿已过去的时间
-        chrome.alarms.create('pomodoro-timer', { periodInMinutes: 0.5 }); // 30秒触发一次
-        updateTimer(); // 立即触发第一次更新
+        refreshInterval = setInterval(updateTimer, 1000);
     }
 }
 
 // 暂停计时
 function pauseTimer() {
-    chrome.alarms.clear('pomodoro-timer');
     isRunning = false;
     elapsedSeconds = Math.floor((Date.now() - startTime) / 1000); // 保存已过去的时间
+    clearInterval(refreshInterval);
 }
 
 // 重置计时
@@ -112,11 +138,6 @@ function resetTimer() {
 chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "tick") {
         updateTimer();
-        // 在前台时使用requestAnimationFrame保持流畅更新
-        console.log(document.visibilityState)
-        if (document.visibilityState === 'visible') {
-            requestAnimationFrame(updateTimer);
-        }
     }
 });
 
@@ -211,18 +232,18 @@ function renderStatsTable() {
 function updateTimer() {
     const now = Date.now();
     elapsedSeconds = Math.floor((now - startTime) / 1000);
-    const targetTime = isWorkTime ? 25 * 60 : 5 * 60;
-
-    timeLeft = targetTime - (elapsedSeconds % targetTime);
-    // timeLeft = timeLeft - 100;
-    timeLeft--;
+    const targetTime = isWorkTime ? workTime : restTime;
+    timeLeft = Math.max(0, targetTime - elapsedSeconds);
     updateDisplay();
 
     if (timeLeft <= 0) {
         if (isWorkTime) {
-            playSound("./resources/end.mp3");
             // 工作结束，切换到休息
             isWorkTime = false;
+            startTime = Date.now();
+            elapsedSeconds = 0;
+            timeLeft = restTime;
+            playSound("./resources/end.mp3");
             const today = new Date().toLocaleDateString();
             tomatoCount++;
             dailyTomatoes[today] = (dailyTomatoes[today] || 0) + 1;
@@ -239,9 +260,12 @@ function updateTimer() {
             document.getElementById("resetBtn").disabled = true;
             document.getElementById("resetBtn").cursor = "default";
         } else {
-            playSound("./resources/start.mp3");
             // 休息结束，切换回工作
             isWorkTime = true;
+            startTime = Date.now();
+            elapsedSeconds = 0;
+            timeLeft = workTime;
+            playSound("./resources/start.mp3");
             document.getElementById("modeTitle").textContent = "一万年太久，只争朝夕";
             document.getElementById("restMessage").style.display = "none";
             document.body.classList.remove("rest-mode");
