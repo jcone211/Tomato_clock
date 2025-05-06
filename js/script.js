@@ -55,6 +55,7 @@ chrome.idle.onStateChanged.addListener((newState) => {
     }
 });
 
+//  监听chrome后台的消息
 chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "tick") {
         updateTimer();
