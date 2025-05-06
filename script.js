@@ -102,6 +102,13 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// 监听系统锁屏事件
+chrome.idle.onStateChanged.addListener((newState) => {
+    if (newState === "locked" && isRunning) {
+        pauseTimer(); // 系统锁屏时暂停计时器
+    }
+});
+
 startBtn.addEventListener("click", startTimer);
 statsBtn.addEventListener("click", showStats);
 closeBtn.addEventListener("click", closeModal);
