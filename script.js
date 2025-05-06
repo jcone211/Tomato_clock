@@ -89,12 +89,16 @@ document.body.classList.add("work-mode");
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         // 页面变为可见时，启动每秒刷新
-        chrome.alarms.clear('pomodoro-timer');
-        refreshInterval = setInterval(updateTimer, 1000);
+        if (isRunning) {
+            chrome.alarms.clear('pomodoro-timer');
+            refreshInterval = setInterval(updateTimer, 1000);
+        }
     } else {
         // 页面变为隐藏时，清除刷新定时器
-        clearInterval(refreshInterval);
-        chrome.alarms.create('pomodoro-timer', { periodInMinutes: 0.5 }); // 30秒触发一次
+        if (isRunning) {
+            clearInterval(refreshInterval);
+            chrome.alarms.create('pomodoro-timer', { periodInMinutes: 0.5 }); // 30秒触发一次
+        }
     }
 });
 
