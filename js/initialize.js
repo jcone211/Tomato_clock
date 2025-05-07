@@ -25,7 +25,7 @@ export function initialize(workTime) {
 }
 
 // 更新剩余时间显示
-export function updateTimeLeftDisplay(timeLeft, isWorkTime) {
+export function updateTimeLeftDisplay(timeLeft, isWorkTime, workTime, restTime) {
     const timerDisplay = document.getElementById("timer");
 
     let minutes, seconds;

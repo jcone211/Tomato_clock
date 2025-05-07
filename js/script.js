@@ -85,7 +85,7 @@ function resetTimer() {
     elapsedSeconds = 0;
     isWorkTime = true;
     timeLeft = 25 * 60;
-    updateTimeLeftDisplay(timeLeft, isWorkTime);
+    updateTimeLeftDisplay(timeLeft);
 }
 
 // 显示统计弹窗
@@ -105,7 +105,7 @@ function updateTimer() {
     elapsedSeconds = Math.floor((now - startTime) / 1000);
     const targetTime = isWorkTime ? workTime : restTime;
     timeLeft = Math.max(0, targetTime - elapsedSeconds);
-    updateTimeLeftDisplay(timeLeft, isWorkTime);
+    updateTimeLeftDisplay(timeLeft, isWorkTime, workTime, restTime);
 
     if (timeLeft <= 0) {
         if (isWorkTime) {
