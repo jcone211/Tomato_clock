@@ -1,12 +1,26 @@
+const tagTempData = [
+    {
+        "id": 1,
+        "name": "背单词",   // 标签名
+        "total": 13.5,      // 总时长(h)
+        "records": {
+            "2023/5/1": 2.5,
+            "2023/5/2": 1.5,
+        },   // 记录数据
+    }
+]
+
 export function initialize(workTime) {
 
     return new Promise((resolve) => {
         let tomatoCount = 0;
         let dailyTomatoes = {};
+        let tags = [];
 
-        chrome.storage.sync.get(['tomatoCount', 'dailyTomatoes'], function (result) {
+        chrome.storage.sync.get(['tomatoCount', 'dailyTomatoes', 'tags'], (result) => {
             tomatoCount = result.tomatoCount || 0;
             dailyTomatoes = result.dailyTomatoes || {};
+            tags = result.tags || tagTempData;
 
             const today = new Date().toLocaleDateString();
             if (!dailyTomatoes[today]) {
@@ -17,7 +31,7 @@ export function initialize(workTime) {
 
             updateTimeLeftDisplay(workTime);
             updateTomatoCountDisplay(dailyTomatoes[today]);
-            resolve({ tomatoCount, dailyTomatoes })
+            resolve({ tomatoCount, dailyTomatoes, tags })
         });
 
     });

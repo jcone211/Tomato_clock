@@ -9,12 +9,14 @@
   --led-off: #003300;
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.3);
+  --golden: #ffd500f3;
+  --light-blue: #00ffff;
 }
 
 body.work-mode {
   font-family: "Fira Code", monospace;
   background-color: #0a0a0a;
-  color: #00ffff;
+  color: var(--light-blue);
 }
 
 body.rest-mode {
@@ -72,10 +74,10 @@ body {
   background-color: #0a0a0a;
   margin: 10% auto;
   padding: 20px;
-  border: 1px solid #00ffff;
+  border: 1px solid var(--light-blue);
   width: 80%;
   max-width: 600px;
-  color: #00ffff;
+  color: var(--light-blue);
 }
 
 .close {
@@ -98,7 +100,7 @@ table {
 
 th,
 td {
-  border: 1px solid #00ffff;
+  border: 1px solid var(--light-blue);
   padding: 8px;
   text-align: left;
 }
@@ -270,4 +272,80 @@ button:hover {
   flex: 1;
   text-align: center;
   color: #ff002b;
+}
+
+/* 标签样式 */
+.tag-container {
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+}
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 80px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--light-blue);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100px;
+  z-index: 100;
+  font-size: 12px;
+}
+.dropdown.show {
+  display: block;
+}
+.dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--light-blue);
+}
+.dropdown-item:hover {
+  background-color: rgba(31, 58, 57);
+}
+.dropdown-item.add-new {
+  color: #666;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+}
+.dropdown-item.add-new input {
+  /* flex: 1; */
+  border: none;
+  outline: none;
+  padding: 4px;
+}
+.dropdown-item.add-new button {
+  background: none;
+  border: none;
+  color: #4caf50;
+  cursor: pointer;
+  font-weight: bold;
+}
+.dropdown-item.add-new button::before {
+  content: none;
+}
+.dropdown-item.add-new button:hover {
+  box-shadow: none;
+  transform: none;
+}
+.tag-link,
+.selected-tag {
+  color: #ffd500d6;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+.tag-link:hover,
+.selected-tag:hover {
+  color: var(--golden);
+  text-decoration: underline;
+}
+.add-tag-input {
+  background-color: #0a0a0a58;
+  width: 100%;
+  text-align: center;
+  color: var(--light-blue);
 }

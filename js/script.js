@@ -8,8 +8,9 @@ let elapsedSeconds = 0; // 累计经过的秒数
 let isRunning = false;
 let isWorkTime = true;
 let refreshInterval;
+let selectedTagId;
 
-let { tomatoCount, dailyTomatoes } = await initialize(workTime);
+let { tomatoCount, dailyTomatoes, tags } = await initialize(workTime);
 
 // DOM元素
 const statsBtn = document.getElementById("statsBtn");
@@ -19,6 +20,10 @@ const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const tomatoCountDisplay = document.getElementById("tomatoCount");
+// 标签元素
+const tagTrigger = document.getElementById('tag-trigger');
+const tagDropdown = document.getElementById('tag-dropdown');
+const selectedTagSpan = document.querySelector('.selected-tag');
 
 startBtn.addEventListener("click", startTimer);
 startBtn.addEventListener("click", () => {
@@ -28,11 +33,20 @@ statsBtn.addEventListener("click", showStats);
 closeBtn.addEventListener("click", closeModal);
 pauseBtn.addEventListener("click", pauseTimer);
 resetBtn.addEventListener("click", resetTimer);
+tagTrigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    tagDropdown.classList.contains('show') ? hideDropdown() : showDropdown();
+});
+tagDropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
 window.addEventListener("click", (event) => {
     if (event.target === modal) {
         closeModal();
     }
 });
+document.addEventListener('click', hideDropdown);
 
 // 监听缩至菜单栏/从菜单栏打开事件
 document.addEventListener('visibilitychange', () => {
@@ -122,6 +136,7 @@ function updateTimer() {
             tomatoCount++;
             dailyTomatoes[today] = (dailyTomatoes[today] || 0) + 1;
             tomatoCountDisplay.textContent = dailyTomatoes[today];
+            recordTag();
             chrome.storage.sync.set({
                 tomatoCount: tomatoCount,
                 dailyTomatoes: dailyTomatoes
@@ -149,5 +164,101 @@ function updateTimer() {
             document.getElementById("resetBtn").disabled = false;
             document.getElementById("resetBtn").cursor = "pointer";
         }
+    }
+}
+
+/* 标签相关操作 */
+// 渲染下拉菜单
+function renderDropdown() {
+    tagDropdown.innerHTML = '';
+
+    // 渲染现有标签
+    tags.forEach(tag => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.textContent = tag.name;
+        item.addEventListener('click', () => {
+            selectTag(tag);
+            hideDropdown();
+        });
+        tagDropdown.appendChild(item);
+    });
+
+    // 添加"新建标签"项
+    const addNewItem = document.createElement('div');
+    addNewItem.className = 'dropdown-item add-new';
+    addNewItem.innerHTML = `
+        <input class="add-tag-input" type="text" placeholder="(新建标签)" maxlength="6" id="new-tag-input">
+    `;
+    tagDropdown.appendChild(addNewItem);
+
+    // 添加事件监听器
+    const newTagInput = document.getElementById('new-tag-input');
+    newTagInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addNewTag();
+        }
+    });
+}
+// 添加新标签
+function addNewTag() {
+    const newTagInput = document.getElementById('new-tag-input');
+    const newTagName = newTagInput.value.trim();
+
+    if (newTagName) {
+        const newId = tags.length > 0 ? Math.max(...tags.map(tag => tag.id)) + 1 : 1;
+        const newTag = {
+            id: newId,
+            name: newTagName,
+            total: 0,       // 用于记录该标签对应的总时长
+            records: {}       // 用于记录该标签对应的日期时长记录,如"2025/5/1": 3
+        };
+
+        tags.push(newTag);
+        selectTag(newTag);
+        hideDropdown();
+        newTagInput.value = '';
+        renderDropdown();
+        chrome.storage.sync.set({ tags });
+    }
+}
+// 选择标签
+function selectTag(tag) {
+    selectedTagSpan.textContent = tag.name;
+    selectedTagId = tag.id;
+}
+
+// 显示下拉列表
+function showDropdown() {
+    tagDropdown.classList.add('show');
+    renderDropdown();
+}
+
+// 隐藏下拉列表
+function hideDropdown() {
+    tagDropdown.classList.remove('show');
+}
+
+// 完成目标时保存标签对应时间
+function recordTag() {
+    if (selectedTagId != null) {
+        const temp = 60 * 25;
+        const workTimeHours = Math.round(temp / 36) / 100;
+        const tag = tags.find(item => item.id == selectedTagId);
+        tag.total += workTimeHours;
+        // 删除超过14天的数据
+        if (Object.keys(tag.records) > 14) {
+            const dates = Object.keys(tag.records).map(date => new Date(date));
+            const dateToDelete = new Date(Math.min(...dates));
+            delete tag.records[dateToDelete.toLocaleDateString()];
+        }
+        // 记录今天数据
+        const todayStr = new Date().toLocaleDateString();
+        if (tag.records[todayStr]) {
+            tag.records[todayStr] += workTimeHours;
+        } else {
+            tag.records[todayStr] = workTimeHours;
+        }
+        chrome.storage.sync.set({ tags });
     }
 }
