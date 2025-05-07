@@ -21,6 +21,9 @@ const resetBtn = document.getElementById("resetBtn");
 const tomatoCountDisplay = document.getElementById("tomatoCount");
 
 startBtn.addEventListener("click", startTimer);
+startBtn.addEventListener("click", () => {
+    playSound("./resources/ping.mp3");
+});
 statsBtn.addEventListener("click", showStats);
 closeBtn.addEventListener("click", closeModal);
 pauseBtn.addEventListener("click", pauseTimer);

@@ -2,7 +2,9 @@
 export function playSound(url) {
     try {
         const audio = new Audio(url);
-        audio.play();
+        audio.play().then(() => {
+            console.log("播放音频成功");
+        });
     } catch (error) {
         console.error("播放音频时发生错误:", error);
     }
