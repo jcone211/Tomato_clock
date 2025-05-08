@@ -1,4 +1,4 @@
-import { playSound, renderStatsTable } from './func.js'
+import { playSound, renderStatsTable, renderTagsTable } from './func.js'
 import { workTime, restTime } from '../config.js'
 import { initialize, updateTimeLeftDisplay, updateTomatoCountDisplay } from './initialize.js';
 
@@ -21,8 +21,8 @@ const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const tomatoCountDisplay = document.getElementById("tomatoCount");
 // 标签元素
-const tagTrigger = document.getElementById('tag-trigger');
-const tagDropdown = document.getElementById('tag-dropdown');
+const tagTrigger = document.getElementById('tagTrigger');
+const tagDropdown = document.getElementById('tagDropdown');
 const selectedTagSpan = document.querySelector('.selected-tag');
 
 startBtn.addEventListener("click", startTimer);
@@ -98,10 +98,10 @@ function pauseTimer() {
 // 重置计时
 function resetTimer() {
     pauseTimer();
-    startTime = 0;
+    startTime = Date.now();
     elapsedSeconds = 0;
     isWorkTime = true;
-    timeLeft = 25 * 60;
+    timeLeft = workTime;
     updateTimeLeftDisplay(timeLeft);
 }
 
@@ -109,6 +109,7 @@ function resetTimer() {
 function showStats() {
     modal.style.display = "block";
     renderStatsTable(tomatoCount, dailyTomatoes);
+    renderTagsTable(tags);
 }
 
 // 关闭统计弹窗
@@ -123,7 +124,6 @@ function updateTimer() {
     const targetTime = isWorkTime ? workTime : restTime;
     timeLeft = Math.max(0, targetTime - elapsedSeconds);
     updateTimeLeftDisplay(timeLeft, isWorkTime, workTime, restTime);
-
     if (timeLeft <= 0) {
         if (isWorkTime) {
             // 工作结束，切换到休息
@@ -184,23 +184,25 @@ function renderDropdown() {
         tagDropdown.appendChild(item);
     });
 
-    // 添加"新建标签"项
-    const addNewItem = document.createElement('div');
-    addNewItem.className = 'dropdown-item add-new';
-    addNewItem.innerHTML = `
-        <input class="add-tag-input" type="text" placeholder="(新建标签)" maxlength="6" id="new-tag-input">
-    `;
-    tagDropdown.appendChild(addNewItem);
+    // 添加"新建标签"项（最多存在6个标签）
+    if (tags.length < 6) {
+        const addNewItem = document.createElement('div');
+        addNewItem.className = 'dropdown-item add-new';
+        addNewItem.innerHTML = `
+            <input class="add-tag-input" type="text" placeholder="(新建标签)" maxlength="6" id="new-tag-input">
+        `;
+        tagDropdown.appendChild(addNewItem);
 
-    // 添加事件监听器
-    const newTagInput = document.getElementById('new-tag-input');
-    newTagInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addNewTag();
-        }
-    });
+        // 添加事件监听器
+        const newTagInput = document.getElementById('new-tag-input');
+        newTagInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addNewTag();
+            }
+        });
+    }
 }
-// 添加新标签
+// 添加标签
 function addNewTag() {
     const newTagInput = document.getElementById('new-tag-input');
     const newTagName = newTagInput.value.trim();
@@ -222,10 +224,18 @@ function addNewTag() {
         chrome.storage.sync.set({ tags });
     }
 }
+
 // 选择标签
 function selectTag(tag) {
-    selectedTagSpan.textContent = tag.name;
-    selectedTagId = tag.id;
+    selectedTagSpan.textContent = tag ? tag.name : "__";
+    selectedTagId = tag ? tag.id : null;
+}
+
+// 删除标签时修改首页标签
+export function selectTagWhileDel(delTagId) {
+    if (selectedTagId === delTagId) {
+        selectTag(null);
+    }
 }
 
 // 显示下拉列表

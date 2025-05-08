@@ -1,14 +1,14 @@
-const tagTempData = [
-    {
-        "id": 1,
-        "name": "背单词",   // 标签名
-        "total": 13.5,      // 总时长(h)
-        "records": {
-            "2023/5/1": 2.5,
-            "2023/5/2": 1.5,
-        },   // 记录数据
-    }
-]
+// interface tagTempData = [
+//     {
+//         "id": 1,
+//         "name": "背单词",   // 标签名
+//         "total": 13.5,      // 总时长(h)
+//         "records": {
+//             "2023/5/1": 2.5,
+//             "2023/5/2": 1.5,
+//         },   // 记录数据
+//     }
+// ]
 
 export function initialize(workTime) {
 
@@ -20,7 +20,7 @@ export function initialize(workTime) {
         chrome.storage.sync.get(['tomatoCount', 'dailyTomatoes', 'tags'], (result) => {
             tomatoCount = result.tomatoCount || 0;
             dailyTomatoes = result.dailyTomatoes || {};
-            tags = result.tags || tagTempData;
+            tags = result.tags || [];
 
             const today = new Date().toLocaleDateString();
             if (!dailyTomatoes[today]) {

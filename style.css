@@ -22,7 +22,7 @@ body.work-mode {
 body.rest-mode {
   font-family: "Fira Code", monospace;
   background-color: #000a0a;
-  color: #ff002b;
+  color: var(--accent-color);
 }
 
 body {
@@ -92,6 +92,10 @@ body {
   color: #ff002b;
 }
 
+.today-goal {
+  margin-top: 4px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -143,7 +147,7 @@ h1 {
   font-size: 5rem;
   font-weight: bold;
   margin: 2rem 0;
-  font-family: "Segment7Standard", monospace;
+  font-family: "DS-DIGIT", monospace;
   color: var(--led-on);
   text-shadow: 0 0 10px var(--led-on), 0 0 20px var(--led-on);
   letter-spacing: 5px;
@@ -219,9 +223,8 @@ button:hover {
 
 /* LED数字字体 */
 @font-face {
-  font-family: "Segment7Standard";
-  src: url("https://cdn.jsdelivr.net/npm/segment7@1.0.0/segment7.woff2")
-    format("woff2");
+  font-family: "DS-DIGIT";
+  src: url("./resources/DS-DIGIB.TTF") format("truetype");
   font-weight: normal;
   font-style: italic;
 }
@@ -272,6 +275,23 @@ button:hover {
   flex: 1;
   text-align: center;
   color: #ff002b;
+}
+
+.split-line {
+  width: 100%;
+  height: 0;
+  border-bottom: 1px dashed #00ff00;
+  margin: 20px 0;
+}
+
+.delete-tag {
+  text-align: center;
+  cursor: pointer;
+  transition: weight 0.3s;
+}
+
+.delete-tag:hover {
+  font-weight: 800;
 }
 
 /* 标签样式 */
@@ -335,7 +355,7 @@ button:hover {
   color: #ffd500d6;
   text-decoration: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   transition: color 0.3s;
 }
 .tag-link:hover,

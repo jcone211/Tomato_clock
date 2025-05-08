@@ -12,7 +12,7 @@ chrome.action.onClicked.addListener(() => {
                 url: chrome.runtime.getURL('index.html'),
                 type: 'popup',
                 width: 520,
-                height: 770,
+                height: 762,
                 left: currentWindow.width - 400,
                 top: 50
             }, (newWindow) => {
@@ -27,6 +27,7 @@ chrome.windows.onRemoved.addListener((closedWindowId) => {
     if (closedWindowId === popupWindowId) {
         popupWindowId = null;
     }
+    chrome.alarms.clear('pomodoro-timer');
 });
 
 // 添加消息监听
