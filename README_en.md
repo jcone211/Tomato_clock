@@ -1,6 +1,6 @@
 # 🚩Tomato_clock🍅 - Communist Cyborg Pomodoro
 
-**[中文](README.md) | English**
+**[简体中文](README.md) | English**
 
 
 
@@ -15,7 +15,9 @@
 ### 🛠️ Core
 
 ✅ 25min Focus + 5min Break
+
 ✅ Chrome Notifications & Inspiring BGM
+
 ✅ Visualized Completion History
 
 ### 🪄 Unique
@@ -37,8 +39,6 @@
 
 ![1746788080501](images/README_en/1746788080501.png)
 
-
-
 ## 🚀 Installation
 
 1. `git clone https://github.com/jcone211/Tomato_clock.git`
@@ -53,6 +53,7 @@
 1. **English version will be supported in the future** ❤
 2. Allow notification permissions
 3. When the window is minimized, it follows Chrome's specification by triggering a status update every 30 seconds, which may result in less accurate notifications
+4. If you want to modify the Pomodoro work/break time, please modify the config.js file yourself
 
 
 
