@@ -75,7 +75,7 @@ chrome.idle.onStateChanged.addListener((newState) => {
 //  监听chrome后台的消息
 chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "tick") {
-        updateTimer();
+        updateTimer(true);
     }
 });
 
@@ -118,7 +118,7 @@ function closeModal() {
 }
 
 // 更新计时器
-function updateTimer() {
+function updateTimer(fromChrome = false) {
     const now = Date.now();
     elapsedSeconds = Math.floor((now - startTime) / 1000);
     const targetTime = isWorkTime ? workTime : restTime;
@@ -149,6 +149,16 @@ function updateTimer() {
             document.getElementById("resetBtn").style.color = "#aeab99f3"
             document.getElementById("resetBtn").disabled = true;
             document.getElementById("resetBtn").cursor = "default";
+            if (fromChrome) {
+                chrome.notifications.create({
+                    type: "basic",
+                    iconUrl: "./icons/tomato_icon_128x128.png",
+                    title: "我的番茄钟",
+                    message: "目标完成，放松下身体吧ο(=•ω＜=)ρ⌒☆",
+                    priority: 2
+                })
+                // playSound("./resources/end.mp3");
+            }
         } else {
             // 休息结束，切换回工作
             isWorkTime = true;
@@ -163,6 +173,16 @@ function updateTimer() {
             document.getElementById("resetBtn").style.color = "#00ffff"
             document.getElementById("resetBtn").disabled = false;
             document.getElementById("resetBtn").cursor = "pointer";
+            if (fromChrome) {
+                chrome.notifications.create({
+                    type: "basic",
+                    iconUrl: "./icons/tomato_icon_128x128.png",
+                    title: "我的番茄钟",
+                    message: "休息时间到，请打起精神！",
+                    priority: 2
+                })
+                // playSound("./resources/start.mp3");
+            }
         }
     }
 }
@@ -220,7 +240,6 @@ function addNewTag() {
         selectTag(newTag);
         hideDropdown();
         newTagInput.value = '';
-        renderDropdown();
         chrome.storage.sync.set({ tags });
     }
 }
