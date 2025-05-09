@@ -1,5 +1,5 @@
-import { playSound, renderStatsTable, renderTagsTable } from './func.js'
 import { workTime, restTime } from '../config.js'
+import { playSound, renderStatsTable, renderTagsTable, createChromeNotification } from './func.js'
 import { initialize, updateTimeLeftDisplay, updateTomatoCountDisplay } from './initialize.js';
 
 let timeLeft = workTime; // 时钟动态显示的值（秒）
@@ -9,40 +9,44 @@ let isRunning = false;
 let isWorkTime = true;
 let refreshInterval;
 let selectedTagId;
+const todayDateStr = new Date().toLocaleDateString();
 
 let { tomatoCount, dailyTomatoes, tags } = await initialize(workTime);
 
 // DOM元素
-const statsBtn = document.getElementById("statsBtn");
-const modal = document.getElementById("statsModal");
-const closeBtn = document.querySelector(".close");
-const startBtn = document.getElementById("startBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const resetBtn = document.getElementById("resetBtn");
-const tomatoCountDisplay = document.getElementById("tomatoCount");
-// 标签元素
-const tagTrigger = document.getElementById('tagTrigger');
-const tagDropdown = document.getElementById('tagDropdown');
-const selectedTagSpan = document.querySelector('.selected-tag');
+const statsBtnEl = document.getElementById("statsBtn");
+const statsModalEl = document.getElementById("statsModal");
+const closeBtnEl = document.querySelector(".close");
+const startBtnEl = document.getElementById("startBtn");
+const pauseBtnEl = document.getElementById("pauseBtn");
+const resetBtnEl = document.getElementById("resetBtn");
+const tomatoCountEl = document.getElementById("tomatoCount");
+const modeTitleEl = document.getElementById("modeTitle");
+const restMessageEl = document.getElementById("restMessage");
 
-startBtn.addEventListener("click", startTimer);
-startBtn.addEventListener("click", () => {
+// 标签元素
+const tagTriggerEl = document.getElementById('tagTrigger');
+const tagDropdownEl = document.getElementById('tagDropdown');
+const selectedTagTextEl = document.querySelector('.selected-tag');
+
+startBtnEl.addEventListener("click", startTimer);
+startBtnEl.addEventListener("click", () => {
     playSound("./resources/ping.mp3");
 });
-statsBtn.addEventListener("click", showStats);
-closeBtn.addEventListener("click", closeModal);
-pauseBtn.addEventListener("click", pauseTimer);
-resetBtn.addEventListener("click", resetTimer);
-tagTrigger.addEventListener('click', (e) => {
+statsBtnEl.addEventListener("click", showStats);
+closeBtnEl.addEventListener("click", closeModal);
+pauseBtnEl.addEventListener("click", pauseTimer);
+resetBtnEl.addEventListener("click", resetTimer);
+tagTriggerEl.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    tagDropdown.classList.contains('show') ? hideDropdown() : showDropdown();
+    tagDropdownEl.classList.contains('show') ? hideDropdown() : showDropdown();
 });
-tagDropdown.addEventListener('click', (e) => {
+tagDropdownEl.addEventListener('click', (e) => {
     e.stopPropagation();
 });
 window.addEventListener("click", (event) => {
-    if (event.target === modal) {
+    if (event.target === statsModalEl) {
         closeModal();
     }
 });
@@ -95,26 +99,31 @@ function pauseTimer() {
     clearInterval(refreshInterval);
 }
 
-// 重置计时
+// 重置计时或跳过休息
 function resetTimer() {
-    pauseTimer();
-    startTime = Date.now();
-    elapsedSeconds = 0;
-    isWorkTime = true;
-    timeLeft = workTime;
-    updateTimeLeftDisplay(timeLeft);
+    const resetBtnStatus = resetBtnEl.getAttribute("data-status");
+    if (resetBtnStatus === "reset") {
+        pauseTimer();
+        startTime = Date.now();
+        elapsedSeconds = 0;
+        isWorkTime = true;
+        timeLeft = workTime;
+        updateTimeLeftDisplay(timeLeft);
+    } else if (resetBtnStatus === "skip" && !isWorkTime) {
+        restEnd();
+    }
 }
 
 // 显示统计弹窗
 function showStats() {
-    modal.style.display = "block";
+    statsModalEl.style.display = "block";
     renderStatsTable(tomatoCount, dailyTomatoes);
     renderTagsTable(tags);
 }
 
 // 关闭统计弹窗
 function closeModal() {
-    modal.style.display = "none";
+    statsModalEl.style.display = "none";
 }
 
 // 更新计时器
@@ -131,66 +140,58 @@ function updateTimer(fromChrome = false) {
             startTime = Date.now();
             elapsedSeconds = 0;
             timeLeft = restTime;
-            playSound("./resources/end.mp3");
-            const today = new Date().toLocaleDateString();
             tomatoCount++;
-            dailyTomatoes[today] = (dailyTomatoes[today] || 0) + 1;
-            tomatoCountDisplay.textContent = dailyTomatoes[today];
+            dailyTomatoes[todayDateStr] = (dailyTomatoes[todayDateStr] || 0) + 1;
+            tomatoCountEl.textContent = dailyTomatoes[todayDateStr];
             recordTag();
             chrome.storage.sync.set({
                 tomatoCount: tomatoCount,
                 dailyTomatoes: dailyTomatoes
             });
-            updateTomatoCountDisplay(dailyTomatoes[today]);
-            document.getElementById("modeTitle").textContent = "保存自己，消灭敌人";
-            document.getElementById("restMessage").style.display = "block";
+            updateTomatoCountDisplay(dailyTomatoes[todayDateStr]);
+            modeTitleEl.textContent = "保存自己，消灭敌人";
+            restMessageEl.style.display = "block";
             document.body.classList.remove("work-mode");
             document.body.classList.add("rest-mode");
-            document.getElementById("resetBtn").style.color = "#aeab99f3"
-            document.getElementById("resetBtn").disabled = true;
-            document.getElementById("resetBtn").cursor = "default";
+            resetBtnEl.textContent = "跳过休息";
+            resetBtnEl.setAttribute("data-status", "skip");
             if (fromChrome) {
-                chrome.notifications.create({
-                    type: "basic",
-                    iconUrl: "./icons/tomato_icon_128x128.png",
-                    title: "我的番茄钟",
-                    message: "目标完成，放松下身体吧ο(=•ω＜=)ρ⌒☆",
-                    priority: 2
-                })
-                // playSound("./resources/end.mp3");
+                createChromeNotification("目标完成，放松下身体吧ο(=•ω＜=)ρ⌒☆");
             }
+            playSound("./resources/end.mp3");
         } else {
             // 休息结束，切换回工作
-            isWorkTime = true;
-            startTime = Date.now();
-            elapsedSeconds = 0;
-            timeLeft = workTime;
-            playSound("./resources/start.mp3");
-            document.getElementById("modeTitle").textContent = "一万年太久，只争朝夕";
-            document.getElementById("restMessage").style.display = "none";
-            document.body.classList.remove("rest-mode");
-            document.body.classList.add("work-mode");
-            document.getElementById("resetBtn").style.color = "#00ffff"
-            document.getElementById("resetBtn").disabled = false;
-            document.getElementById("resetBtn").cursor = "pointer";
+            restEnd();
             if (fromChrome) {
-                chrome.notifications.create({
-                    type: "basic",
-                    iconUrl: "./icons/tomato_icon_128x128.png",
-                    title: "我的番茄钟",
-                    message: "休息时间到，请打起精神！",
-                    priority: 2
-                })
-                // playSound("./resources/start.mp3");
+                createChromeNotification("休息时间到，请打起精神！");
             }
+            playSound("./resources/start.mp3");
         }
+    }
+}
+
+// 休息结束调用
+function restEnd() {
+    isWorkTime = true;
+    startTime = Date.now();
+    elapsedSeconds = 0;
+    timeLeft = workTime;
+    modeTitleEl.textContent = "一万年太久，只争朝夕";
+    restMessageEl.style.display = "none";
+    document.body.classList.remove("rest-mode");
+    document.body.classList.add("work-mode");
+    resetBtnEl.textContent = "重置";
+    resetBtnEl.setAttribute("data-status", "reset");
+    // 调用一次以修改显示
+    if (!isRunning) {
+        updateTimer();
     }
 }
 
 /* 标签相关操作 */
 // 渲染下拉菜单
 function renderDropdown() {
-    tagDropdown.innerHTML = '';
+    tagDropdownEl.innerHTML = '';
 
     // 渲染现有标签
     tags.forEach(tag => {
@@ -201,7 +202,7 @@ function renderDropdown() {
             selectTag(tag);
             hideDropdown();
         });
-        tagDropdown.appendChild(item);
+        tagDropdownEl.appendChild(item);
     });
 
     // 添加"新建标签"项（最多存在6个标签）
@@ -211,7 +212,7 @@ function renderDropdown() {
         addNewItem.innerHTML = `
             <input class="add-tag-input" type="text" placeholder="(新建标签)" maxlength="6" id="new-tag-input">
         `;
-        tagDropdown.appendChild(addNewItem);
+        tagDropdownEl.appendChild(addNewItem);
 
         // 添加事件监听器
         const newTagInput = document.getElementById('new-tag-input');
@@ -233,7 +234,7 @@ function addNewTag() {
             id: newId,
             name: newTagName,
             total: 0,       // 用于记录该标签对应的总时长
-            records: {}       // 用于记录该标签对应的日期时长记录,如"2025/5/1": 3
+            records: {}     // 用于记录该标签对应的日期时长记录,如"2025/5/1": 3
         };
 
         tags.push(newTag);
@@ -246,7 +247,7 @@ function addNewTag() {
 
 // 选择标签
 function selectTag(tag) {
-    selectedTagSpan.textContent = tag ? tag.name : "__";
+    selectedTagTextEl.textContent = tag ? tag.name : "__";
     selectedTagId = tag ? tag.id : null;
 }
 
@@ -259,13 +260,13 @@ export function selectTagWhileDel(delTagId) {
 
 // 显示下拉列表
 function showDropdown() {
-    tagDropdown.classList.add('show');
+    tagDropdownEl.classList.add('show');
     renderDropdown();
 }
 
 // 隐藏下拉列表
 function hideDropdown() {
-    tagDropdown.classList.remove('show');
+    tagDropdownEl.classList.remove('show');
 }
 
 // 完成目标时保存标签对应时间
@@ -282,11 +283,10 @@ function recordTag() {
             delete tag.records[dateToDelete.toLocaleDateString()];
         }
         // 记录今天数据
-        const todayStr = new Date().toLocaleDateString();
-        if (tag.records[todayStr]) {
-            tag.records[todayStr] += workTimeHours;
+        if (tag.records[todayDateStr]) {
+            tag.records[todayDateStr] += workTimeHours;
         } else {
-            tag.records[todayStr] = workTimeHours;
+            tag.records[todayDateStr] = workTimeHours;
         }
         chrome.storage.sync.set({ tags });
     }

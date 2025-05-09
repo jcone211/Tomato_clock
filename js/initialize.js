@@ -40,7 +40,7 @@ export function initialize(workTime) {
 
 // 更新剩余时间显示
 export function updateTimeLeftDisplay(timeLeft, isWorkTime, workTime, restTime) {
-    const timerDisplay = document.getElementById("timer");
+    const timerDisplayEl = document.getElementById("timer");
 
     let minutes, seconds;
     if (timeLeft != 0) {
@@ -54,13 +54,13 @@ export function updateTimeLeftDisplay(timeLeft, isWorkTime, workTime, restTime) 
         }
         seconds = 0;
     }
-    timerDisplay.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
+    timerDisplayEl.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
         .toString()
         .padStart(2, "0")}`;
 }
 
 // 更新今日已完成目标显示
 export function updateTomatoCountDisplay(tomatoCount) {
-    const tomatoCountDisplay = document.getElementById("tomatoCount");
-    tomatoCountDisplay.textContent = tomatoCount;
+    const tomatoCountEl = document.getElementById("tomatoCount");
+    tomatoCountEl.textContent = tomatoCount;
 }

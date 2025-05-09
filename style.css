@@ -143,6 +143,14 @@ h1 {
   letter-spacing: 2px;
 }
 
+.rest-message {
+  display: none;
+  color: #ffd500f3;
+  font-size: 1.4rem;
+  width: 11em;
+  margin: 0 auto;
+}
+
 .timer-display {
   font-size: 5rem;
   font-weight: bold;

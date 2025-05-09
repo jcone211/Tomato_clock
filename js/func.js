@@ -61,9 +61,9 @@ export function renderStatsTable(tomatoCount, dailyTomatoes) {
 
 // 渲染标签表格
 export function renderTagsTable(tags) {
-    const tagsTable = document.getElementById("tagsTable");
+    const tagsTableEl = document.getElementById("tagsTable");
     if (tags.length === 0) {
-        tagsTable.innerHTML = "<p>暂无数据</p>";
+        tagsTableEl.innerHTML = "<p>暂无数据</p>";
         return;
     }
     let html = '<table><tr><th></th><th>总计</th><th>上周</th><th>本周</th><th style="text-align:center;width:40px">操作(del)</th></tr>';
@@ -71,7 +71,7 @@ export function renderTagsTable(tags) {
         html += `<tr><td>${tag.name}</td><td>${keepOneDecimalPlace(tag.total)}h</td><td>${getLastWeekTagHours(tag.records)}h</td><td>${getThisWeekTagHours(tag.records)}h</td><td class="delete-tag"><a class="deleteTag" data-tag-id="${tag.id}">x</a></td></tr>`;
     });
     html += '</table>';
-    tagsTable.innerHTML = html;
+    tagsTableEl.innerHTML = html;
     // 绑定删除标签的点击事件
     document.querySelectorAll('.deleteTag').forEach(link => {
         link.addEventListener('click', event => {
@@ -155,4 +155,15 @@ function getThisWeekTagHours(records) {
 // 保留一位小数
 function keepOneDecimalPlace(number) {
     return Math.round(number * 10) / 10;
-}   
+}
+
+// chrome通知
+export function createChromeNotification(msg) {
+    chrome.notifications.create({
+        type: "basic",
+        iconUrl: "./icons/tomato_icon_128x128.png",
+        title: "我的番茄钟",
+        message: msg,
+        priority: 2
+    })
+}
