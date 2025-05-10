@@ -272,8 +272,8 @@ function hideDropdown() {
 // 完成目标时保存标签对应时间
 function recordTag() {
     if (selectedTagId != null) {
-        const temp = 60 * 25;
-        const workTimeHours = Math.round(temp / 36) / 100;
+        // const temp = 60 * 25;
+        const workTimeHours = Math.round(workTime / 36) / 100;
         const tag = tags.find(item => item.id == selectedTagId);
         tag.total += workTimeHours;
         // 删除超过14天的数据
