@@ -25,7 +25,7 @@ export function renderStatsTable(tomatoCount, dailyTomatoes) {
     // 计算统计指标
     const lastMonthCount = getLastMonthCount(dailyTomatoes);
     const lastWeekCount = getLastWeekCount(dailyTomatoes);
-    const thisWeekCount = calculatePeriodCount(dailyTomatoes, 7);
+    const thisWeekCount = calculatePeriodCount(dailyTomatoes, decreaseDay);
 
     let html = `
         <div class="stats-summary">
